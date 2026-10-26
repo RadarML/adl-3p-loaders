@@ -1,14 +1,16 @@
 # `adl-3p-loaders`: Abstract Dataloader-Compliant Loaders for Third-Party Datasets
 
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/adl-3p-loaders)
-![License - MIT](https://img.shields.io/badge/license-MIT-green)
-![PyPI - Types](https://img.shields.io/pypi/types/adl-3p-loaders)
+[![GitHub](https://img.shields.io/github/v/release/RadarML/adl-3p-loaders)](https://github.com/RadarML/adl-3p-loaders)
+![MIT License](https://img.shields.io/badge/license-MIT-green)
+![Supports Python 3.10+](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)
+![Typed](https://img.shields.io/badge/types-typed-limegreen)
 [![CI](https://github.com/RadarML/adl-3p-loaders/actions/workflows/ci.yml/badge.svg)](https://github.com/RadarML/adl-3p-loaders/actions/workflows/ci.yml)
 ![GitHub issues](https://img.shields.io/github/issues/RadarML/adl-3p-loaders)
 
-`adl-3p-loaders` provides data loaders for third-party datasets that implement the [abstract dataloader](https://radarml.github.io/abstract-dataloader/) specification. Each dataset is exposed as ADL sensors, traces, and datasets, which return typed, batched numpy dataclasses.
+> [!IMPORTANT]
+> See our [documentation site](https://radarml.github.io/adl-3p-loaders) for more details!
 
-See our [documentation site](https://radarml.github.io/adl-3p-loaders/) for more details.
+`adl-3p-loaders` provides data loaders for third-party datasets that implement the [abstract dataloader](https://radarml.github.io/abstract-dataloader/) specification. Each dataset is exposed as ADL sensors, traces, and datasets, which return typed, batched numpy dataclasses.
 
 ## Supported Datasets
 
@@ -16,12 +18,23 @@ See our [documentation site](https://radarml.github.io/adl-3p-loaders/) for more
 |--------|---------|---------|
 | [`adl_3p_loaders.coloradar`](https://radarml.github.io/adl-3p-loaders/coloradar/) | [ColoRadar](https://arpg.github.io/coloradar/) | Single-chip (AWR1843) radar ADC samples, Ouster OS1-64 lidar point clouds |
 
-## Install
+## Setup
 
-`adl-3p-loaders` can be installed from github:
+`adl-3p-loaders` is intended to be used as a library; we recommend installing it as a submodule:
 
 ```sh
-pip install git+ssh://git@github.com/RadarML/adl-3p-loaders.git
+git submodule add git@github.com:RadarML/adl-3p-loaders.git
+uv pip install -e ./adl-3p-loaders
+```
+
+Or, via `uv` + `pyproject.toml`:
+
+```toml
+[project]
+dependencies = ["adl-3p-loaders"]
+
+[tool.uv.sources]
+adl-3p-loaders = { path = "./adl-3p-loaders", editable = true }
 ```
 
 ## Usage

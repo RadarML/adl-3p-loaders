@@ -16,11 +16,26 @@ Each sample is a typed dataclass of numpy arrays with leading `batch` and `t` (t
 |--------|---------|---------|
 | [`coloradar`][adl_3p_loaders.coloradar] | [ColoRadar](https://arpg.github.io/coloradar/) | Single-chip (AWR1843) radar ADC samples, Ouster OS1-64 lidar point clouds |
 
-## Install
+## Setup
 
-```sh
-pip install git+ssh://git@github.com/RadarML/adl-3p-loaders.git
-```
+`adl-3p-loaders` is intended to be used as a library; we recommend installing it as a submodule:
+
+=== "As Submodule"
+
+    ```sh
+    git submodule add git@github.com:RadarML/adl-3p-loaders.git
+    uv pip install -e ./adl-3p-loaders
+    ```
+
+=== "Via `uv` + `pyproject.toml`"
+
+    ```toml
+    [project]
+    dependencies = ["adl-3p-loaders"]
+
+    [tool.uv.sources]
+    adl-3p-loaders = { path = "./adl-3p-loaders", editable = true }
+    ```
 
 ## Usage
 
