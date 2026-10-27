@@ -142,3 +142,50 @@ def test_real_data():
 
     points = trace["lidar"][0].points
     assert points.shape == (1, 1, 65536, 4)
+
+
+def test_get_transform(fake):
+    """Transforms compose through the base frame and invert consistently."""
+    calib = os.path.join(fake.root, "utils", "calib")
+    l2r = coloradar.get_transform(calib, "lidar", "single_chip")
+    r2l = coloradar.get_transform(calib, "single_chip", "lidar")
+    assert l2r.shape == (4, 4)
+    assert np.allclose(l2r @ r2l, np.eye(4))
+    assert np.allclose(np.linalg.det(l2r[:3, :3]), 1.0)
+
+    # The lidar origin is at the lidar translation in the base frame.
+    l2b = coloradar.get_transform(calib, "lidar", "base")
+    assert np.allclose(l2b[:3, 3], [-0.075, -0.02, 0.03618])
+    assert np.allclose(
+        coloradar.get_transform(calib, "base", "base"), np.eye(4))
+
+    # Both sensors are yawed ~90 / ~-92 deg, so lidar -> radar is ~180 deg.
+    assert l2r[0, 0] < -0.99 and l2r[1, 1] < -0.99
+
+
+def test_split(fake):
+    """Splits take contiguous proportions of each trace."""
+    calib = os.path.join(fake.root, "utils", "calib")
+    trace = coloradar.Trace.from_config(
+        os.path.join(fake.root, fake.run),
+        sync=generic.Nearest("radar", tol=0.1), calib=calib)
+    dataset = coloradar.Dataset(traces=[trace, trace])
+
+    head = coloradar.split(trace, start=0.0, end=0.5)
+    tail = coloradar.split(trace, start=0.5, end=1.0)
+    assert isinstance(head, coloradar.Trace)
+    assert len(head) + len(tail) == len(trace)
+    assert np.allclose(
+        tail[0]["radar"].timestamps, trace[len(head)]["radar"].timestamps)
+
+    sub = coloradar.split(dataset, start=0.0, end=0.5)
+    assert isinstance(sub, coloradar.Dataset)
+    assert len(sub) == 2 * len(head)
+
+    unsynced = coloradar.Trace.from_config(
+        os.path.join(fake.root, fake.run), sensors={"radar": None},
+        sync=None, calib=calib)
+    assert len(coloradar.split(unsynced, end=0.5)) == 1
+
+    with pytest.raises(ValueError):
+        coloradar.split(trace, start=0.5, end=0.5)

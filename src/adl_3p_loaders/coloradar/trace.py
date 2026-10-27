@@ -3,6 +3,7 @@
 import os
 from collections.abc import Callable, Mapping, Sequence
 from multiprocessing.pool import ThreadPool
+from typing import Self, overload
 
 import numpy as np
 from abstract_dataloader import abstract, generic, spec
@@ -52,7 +53,7 @@ class Trace(abstract.Trace):
             str, Callable[[str, str], spec.Sensor] | str | None] | None = None,
         sync: spec.Synchronization | None = generic.Empty(),
         calib: str | None = None
-    ) -> "Trace":
+    ) -> Self:
         """Create a trace from sensor configurations.
 
         `sensors` maps each sensor name (a key in `SENSOR_PATHS`, i.e.
@@ -135,7 +136,7 @@ class Dataset(abstract.Dataset):
             str, Callable[[str, str], spec.Sensor] | str | None] | None = None,
         sync: spec.Synchronization | None = generic.Empty(),
         calib: str | None = None, workers: int = 0
-    ) -> "Dataset":
+    ) -> Self:
         """Create a dataset from sensor configurations.
 
         Args:
@@ -169,3 +170,71 @@ class Dataset(abstract.Dataset):
             with ThreadPool(workers) as pool:
                 loaded = pool.map(_load, paths)
         return cls(traces=loaded)
+
+
+@overload
+def split[TSample](
+    dataset: abstract.Trace[TSample], start: float = 0.0, end: float = 1.0
+) -> Trace: ...
+
+@overload
+def split[TSample](
+    dataset: abstract.Dataset[TSample], start: float = 0.0, end: float = 1.0
+) -> Dataset: ...
+
+def split[TSample](
+    dataset: abstract.Dataset[TSample] | abstract.Trace[TSample],
+    start: float = 0.0, end: float = 1.0
+) -> Dataset | Trace:
+    """Get a contiguous sub-trace or sub-dataset.
+
+    Each trace is split separately, so splitting a dataset takes the same
+    `start` to `end` proportion of every trace.
+
+    Args:
+        dataset: trace or dataset to split.
+        start: start of the split, as a proportion of the trace length (`0-1`).
+        end: end of the split, as a proportion of the trace length (`0-1`).
+
+    Returns:
+        Trace or dataset with a contiguous subset of samples according to the
+            start and end indices.
+
+    Raises:
+        ValueError: if the split range is invalid, or a trace has no sensors.
+        TypeError: if a dataset contains a trace which is not an
+            `abstract.Trace` (and therefore does not expose its sensors and
+            indices).
+    """
+    if not (0 <= start < end <= 1):
+        raise ValueError(
+            f"Invalid split range: {start} - {end} (must be in [0, 1])")
+
+    if isinstance(dataset, abstract.Trace):
+        if dataset.indices is None:
+            indices = {
+                k: np.arange(len(v), dtype=np.int32)
+                for k, v in dataset.sensors.items()}
+        else:
+            indices = dataset.indices
+
+        for v in indices.values():
+            istart = int(len(v) * start)
+            iend = int(len(v) * end)
+            break
+        else:
+            raise ValueError("There must be at least one sensor.")
+
+        return Trace(
+            sensors=dataset.sensors,
+            sync={k: np.copy(v[istart:iend]) for k, v in indices.items()},
+            name=dataset.name)
+
+    traces: list[Trace] = []
+    for t in dataset.traces:
+        if not isinstance(t, abstract.Trace):
+            raise TypeError(
+                f"Cannot split trace of type {type(t).__name__}; must be an "
+                f"`abstract.Trace`.")
+        traces.append(split(t, start=start, end=end))
+    return Dataset(traces=traces)

@@ -1,6 +1,10 @@
 """ColoRadar calibration file parsers."""
 
+import os
+
 import numpy as np
+from jaxtyping import Float64
+from scipy.spatial.transform import Rotation
 
 from . import types
 
@@ -51,3 +55,33 @@ def read_transform(path: str) -> types.Transform[np.ndarray]:
     return types.Transform(
         translation=np.array([lines[0]], dtype=np.float64),
         rotation=np.array([lines[1]], dtype=np.float64))
+
+
+def get_transform(
+    calib: str, from_sensor: str, to_sensor: str
+) -> Float64[np.ndarray, "4 4"]:
+    """Get the rigid transform between two ColoRadar sensor frames.
+
+    Sensors are named by their calibration file suffix, i.e.
+    `transforms/base_to_{sensor}.txt` (e.g. `lidar`, `single_chip`); `base`
+    refers to the base frame itself.
+
+    Args:
+        calib: path to the ColoRadar calibration directory (`utils/calib`).
+        from_sensor: source frame.
+        to_sensor: target frame.
+
+    Returns:
+        4x4 homogeneous transform which maps points in the `from_sensor` frame
+            to the `to_sensor` frame.
+    """
+    def _to_base(sensor: str) -> Float64[np.ndarray, "4 4"]:
+        res = np.eye(4)
+        if sensor != "base":
+            tf = read_transform(
+                os.path.join(calib, "transforms", f"base_to_{sensor}.txt"))
+            res[:3, :3] = Rotation.from_quat(tf.rotation[0]).as_matrix()
+            res[:3, 3] = tf.translation[0]
+        return res
+
+    return np.linalg.inv(_to_base(to_sensor)) @ _to_base(from_sensor)

@@ -43,13 +43,13 @@ sample = dataset[0]  # {"radar": RadarADC, "lidar": LidarPoints}
 """
 
 from . import types
-from .calib import read_transform, read_waveform
+from .calib import get_transform, read_transform, read_waveform
 from .sensors import Lidar, LidarMetadata, Radar, RadarMetadata
-from .trace import SENSOR_PATHS, SENSOR_TYPES, Dataset, Trace
+from .trace import SENSOR_PATHS, SENSOR_TYPES, Dataset, Trace, split
 
 __all__ = [
     "types",
-    "read_transform", "read_waveform",
+    "get_transform", "read_transform", "read_waveform",
     "Lidar", "LidarMetadata", "Radar", "RadarMetadata",
-    "SENSOR_PATHS", "SENSOR_TYPES", "Dataset", "Trace",
+    "SENSOR_PATHS", "SENSOR_TYPES", "Dataset", "Trace", "split",
 ]
