@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 import numpy as np
 from abstract_dataloader import abstract
-from jaxtyping import Float64
+from jaxtyping import Float64, Int16
 
 from . import types
 from .calib import read_transform, read_waveform
@@ -46,12 +46,19 @@ class Radar(abstract.Sensor[types.RadarADC[np.ndarray], RadarMetadata]):
     `(tx, rx, chirp, sample)` order, and is returned in TI
     `(chirp, tx, rx, sample)` order.
 
+    !!! warning
+
+        If `past > 0`, the caller is responsible for ensuring that indices
+        `< past` are not accessed, e.g. by applying a synchronization margin.
+
     Args:
         path: path to the `single_chip` directory of a run.
         calib: path to the ColoRadar calibration directory (`utils/calib`).
+        past: number of past frames to include.
     """
 
-    def __init__(self, path: str, calib: str) -> None:
+    def __init__(self, path: str, calib: str, past: int = 0) -> None:
+        self.past = past
         self._path = os.path.join(path, "adc_samples")
         waveform = read_waveform(
             os.path.join(calib, "single_chip", "waveform_cfg.txt"))
@@ -64,8 +71,7 @@ class Radar(abstract.Sensor[types.RadarADC[np.ndarray], RadarMetadata]):
                 os.path.join(calib, "transforms", "base_to_single_chip.txt")),
         ), name=os.path.basename(os.path.dirname(os.path.abspath(path))))
 
-    def __getitem__(self, index: int | np.integer) -> types.RadarADC[np.ndarray]:
-        """Read a radar frame."""
+    def _read_frame(self, index: int) -> Int16[np.ndarray, "chirp tx rx sample 2"]:
         n_chirp, n_tx, n_rx, n_sample = self.metadata.waveform.shape
         raw = np.fromfile(
             os.path.join(self._path, "data", f"frame_{index}.bin"),
@@ -75,12 +81,21 @@ class Radar(abstract.Sensor[types.RadarADC[np.ndarray], RadarMetadata]):
             raise ValueError(
                 f"Radar frame {index} has {raw.size} values; expected "
                 f"{expected} for shape {self.metadata.waveform.shape}.")
-        iq = np.ascontiguousarray(
-            raw.reshape(n_tx, n_rx, n_chirp, n_sample, 2)
-            .transpose(2, 0, 1, 3, 4))
+        return raw.reshape(n_tx, n_rx, n_chirp, n_sample, 2).transpose(
+            2, 0, 1, 3, 4)
+
+    def __getitem__(self, index: int | np.integer) -> types.RadarADC[np.ndarray]:
+        """Read a radar frame, along with `past` previous frames."""
+        index = int(index)
+        if index < self.past:
+            raise IndexError(
+                f"Radar frame {index} does not have {self.past} past frames.")
+        iq = np.stack([
+            self._read_frame(i) for i in range(index - self.past, index + 1)])
         return types.RadarADC(
-            iq=iq[None, None],
-            timestamps=self.metadata.timestamps[index:index + 1][None],
+            iq=iq[None],
+            timestamps=self.metadata.timestamps[
+                index - self.past:index + 1][None],
             waveform=self.metadata.waveform,
             extrinsics=self.metadata.extrinsics)
 
