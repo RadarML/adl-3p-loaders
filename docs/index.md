@@ -10,6 +10,10 @@ Each dataset module follows the same structure:
 
 Each sample is a typed dataclass of numpy arrays with leading `batch` and `t` (time) axes, which are both `1` when loading single frames. Sample types are registered with [optree](https://github.com/metaopt/optree) using [`abstract_dataloader.ext.types.dataclass`][abstract_dataloader.ext.types.dataclass], so they can be collated and converted with any optree-aware tooling.
 
+!!! warning
+
+    This library is primarily written and maintained by LLM agents tasked with implementing data loaders following the [abstract dataloader](https://radarml.github.io/abstract-dataloader/) specification. While spec-compliance is largely guaranteed, the software provided by each dataset's original authors should be considered authoritative.
+
 ## Supported Datasets
 
 | Module | Dataset | Sensors |
