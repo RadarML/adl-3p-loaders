@@ -15,6 +15,7 @@ Each sample is a typed dataclass of numpy arrays with leading `batch` and `t` (t
 | Module | Dataset | Sensors |
 |--------|---------|---------|
 | [`coloradar`][adl_3p_loaders.coloradar] | [ColoRadar](https://arpg.github.io/coloradar/) | Single-chip (AWR1843) radar ADC samples, Ouster OS1-64 lidar point clouds |
+| [`grade`][adl_3p_loaders.grade] | [GRADE](https://phi-lab-rice.github.io/GRADE/) | Single-chip (IWR1843) radar ADC samples, ZED 2i stereo depth, MAX30105 smoke sensor; requires the `grade` extra |
 
 ## Setup
 

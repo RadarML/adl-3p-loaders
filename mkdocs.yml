@@ -9,6 +9,8 @@ nav:
   - Datasets:
     - coloradar: coloradar/index.md
     - coloradar.types: coloradar/types.md
+    - grade: grade/index.md
+    - grade.types: grade/types.md
 
 extra_css:
   - stylesheets/extra.css
@@ -61,6 +63,8 @@ plugins:
       "Datasets":
       - coloradar/index.md: ColoRadar single-chip radar ADC and lidar loader
       - coloradar/types.md: ColoRadar data types
+      - grade/index.md: GRADE single-chip radar ADC, ZED depth, and smoke sensor loader
+      - grade/types.md: GRADE data types
 - mkdocstrings:
     default_handler: python_xref
     handlers:

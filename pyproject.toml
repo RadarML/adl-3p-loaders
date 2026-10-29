@@ -33,7 +33,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+grade = ["h5py >= 3.0"]
 dev = [
+    "adl-3p-loaders[grade]",
     "pre-commit >= 4.0.0",
     "pytest >= 8.0.0",
     "coverage",

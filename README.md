@@ -17,6 +17,7 @@
 | Module | Dataset | Sensors |
 |--------|---------|---------|
 | [`adl_3p_loaders.coloradar`](https://radarml.github.io/adl-3p-loaders/coloradar/) | [ColoRadar](https://arpg.github.io/coloradar/) | Single-chip (AWR1843) radar ADC samples, Ouster OS1-64 lidar point clouds |
+| [`adl_3p_loaders.grade`](https://radarml.github.io/adl-3p-loaders/grade/) | [GRADE](https://phi-lab-rice.github.io/GRADE/) | Single-chip (IWR1843) radar ADC samples, ZED 2i stereo depth, MAX30105 smoke sensor; requires the `grade` extra |
 
 ## Setup
 

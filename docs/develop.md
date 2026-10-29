@@ -35,6 +35,7 @@ By default, tests only use small synthetic datasets. To also test against the re
 | Dataset | Environment Variable |
 |---------|----------------------|
 | ColoRadar | `COLORADAR_PATH` |
+| GRADE | `GRADE_PATH` |
 
 ```sh
 export COLORADAR_PATH=/path/to/coloradar
